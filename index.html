@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>视功能分析助手</title>
+<meta name="description" content="眼镜店视功能检查数据自动分析与报告生成工具，数据仅保存于本机浏览器。">
+<meta name="theme-color" content="#0b5c6b">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="视功能分析">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="app-header">
+  <div class="brand">
+    <img src="icons/icon-192.png" alt="应用图标" class="brand-icon">
+    <div class="brand-text">
+      <h1>视功能分析助手</h1>
+      <p>调节 · 聚散 · 三级视功能自动评估</p>
+    </div>
+  </div>
+  <button id="btn-history" class="btn btn-ghost" type="button">历史记录 <span id="history-count" class="badge">0</span></button>
+</header>
+
+<nav class="steps-bar" aria-label="流程步骤">
+  <button class="step-tab active" data-goto="1" type="button"><span class="step-no">1</span>问诊记录</button>
+  <button class="step-tab" data-goto="2" type="button"><span class="step-no">2</span>检查数据</button>
+  <button class="step-tab" data-goto="3" type="button"><span class="step-no">3</span>分析报告</button>
+</nav>
+
+<main id="main">
+
+  <!-- ============ 第一步：问诊 ============ -->
+  <section id="step-1" class="step-panel active">
+    <div class="card">
+      <h2 class="card-title"><span class="tag">A</span>基本信息</h2>
+      <div class="grid">
+        <label class="field"><span>年龄（周岁）<em class="req">*</em></span>
+          <input type="number" data-field="basic.age" min="0" max="120" step="1" placeholder="如 12">
+        </label>
+        <label class="field"><span>性别</span>
+          <select data-field="basic.gender">
+            <option value="">请选择</option><option>男</option><option>女</option>
+          </select>
+        </label>
+        <label class="field"><span>当前戴镜情况</span>
+          <select data-field="basic.wearType">
+            <option value="">请选择</option>
+            <option>不戴镜</option><option>框架眼镜</option><option>隐形眼镜</option><option>角膜塑形镜</option>
+          </select>
+        </label>
+        <label class="field"><span>主诉（一句话）</span>
+          <input type="text" data-field="basic.complaint" placeholder="如：阅读 20 分钟后眼胀、头痛">
+        </label>
+      </div>
+      <div class="grid">
+        <fieldset class="field rx">
+          <span>屈光处方 OD（右眼）</span>
+          <div class="rx-row">
+            <input type="number" data-field="basic.rxOD.sph" step="0.25" placeholder="球镜 DS">
+            <input type="number" data-field="basic.rxOD.cyl" step="0.25" placeholder="柱镜 DC">
+            <input type="number" data-field="basic.rxOD.axis" step="1" min="0" max="180" placeholder="轴位">
+          </div>
+        </fieldset>
+        <fieldset class="field rx">
+          <span>屈光处方 OS（左眼）</span>
+          <div class="rx-row">
+            <input type="number" data-field="basic.rxOS.sph" step="0.25" placeholder="球镜 DS">
+            <input type="number" data-field="basic.rxOS.cyl" step="0.25" placeholder="柱镜 DC">
+            <input type="number" data-field="basic.rxOS.axis" step="1" min="0" max="180" placeholder="轴位">
+          </div>
+        </fieldset>
+      </div>
+      <div class="grid">
+        <label class="field"><span>裸眼视力 OD</span><input type="number" data-field="basic.vaNakedOD" step="0.1" min="0" max="2" placeholder="如 0.6"></label>
+        <label class="field"><span>裸眼视力 OS</span><input type="number" data-field="basic.vaNakedOS" step="0.1" min="0" max="2" placeholder="如 0.6"></label>
+        <label class="field"><span>最佳矫正视力 OD</span><input type="number" data-field="basic.vaCorrectedOD" step="0.1" min="0" max="2" placeholder="如 1.0"></label>
+        <label class="field"><span>最佳矫正视力 OS</span><input type="number" data-field="basic.vaCorrectedOS" step="0.1" min="0" max="2" placeholder="如 1.0"></label>
+        <label class="field"><span>是否睫状肌麻痹（散瞳）</span>
+          <select data-field="basic.cycloplegia"><option value="">请选择</option><option value="yes">是</option><option value="no">否</option></select>
+        </label>
+        <label class="field"><span>是否充分雾视放松</span>
+          <select data-field="basic.fogging"><option value="">请选择</option><option value="yes">是</option><option value="no">否</option></select>
+        </label>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="card-title"><span class="tag">B</span>主诉症状<span class="card-sub">逐项询问：有没有、多久了、什么情况下出现</span></h2>
+      <div class="symptom-list" id="symptom-list">
+        <label class="check-row"><input type="checkbox" data-field="symptoms.eyeStrain"><span>看近处（看书、手机）会眼胀、眼酸</span></label>
+        <label class="check-row"><input type="checkbox" data-field="symptoms.blurAfterNear"><span>看近一段时间后看远处模糊</span></label>
+        <label class="check-row"><input type="checkbox" data-field="symptoms.headache"><span>头痛，尤其是额头与眼眶周围</span></label>
+        <label class="check-row"><input type="checkbox" data-field="symptoms.lineSkip"><span>阅读时跳行、串行、漏字</span></label>
+        <label class="check-row"><input type="checkbox" data-field="symptoms.diplopia"><span>重影（看一个东西变成两个）</span></label>
+        <label class="check-row"><input type="checkbox" data-field="symptoms.drowsy"><span>看书容易犯困、注意力不集中</span></label>
+      </div>
+      <div class="grid">
+        <label class="field"><span>症状持续多久了</span>
+          <select data-field="symptoms.duration">
+            <option value="">请选择</option>
+            <option value="lt1m">不到 1 个月</option><option value="1to3m">1~3 个月</option>
+            <option value="3to6m">3~6 个月</option><option value="gt6m">6 个月以上</option>
+          </select>
+        </label>
+        <label class="field"><span>每天什么时间段最明显</span>
+          <select data-field="symptoms.timeOfDay">
+            <option value="">请选择</option><option>早晨</option><option>上午</option>
+            <option>下午</option><option>晚上</option><option>全天</option>
+          </select>
+        </label>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="card-title"><span class="tag">C</span>用眼习惯</h2>
+      <div class="grid">
+        <label class="field"><span>每天近距离用眼（手机/电脑/看书）约几小时</span>
+          <input type="number" data-field="habits.nearHours" min="0" max="24" step="0.5" placeholder="如 6">
+        </label>
+        <label class="check-row inline"><input type="checkbox" data-field="habits.continuousUse"><span>有长时间连续用眼不休息的习惯</span></label>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="card-title"><span class="tag">D</span>既往史</h2>
+      <div class="symptom-list">
+        <label class="check-row"><input type="checkbox" data-field="history.strabismus"><span>有斜视、弱视病史</span></label>
+        <label class="check-row"><input type="checkbox" data-field="history.surgery"><span>有眼部手术史或眼外伤史</span></label>
+        <label class="check-row"><input type="checkbox" data-field="history.inTraining"><span>正在进行视觉训练</span></label>
+      </div>
+    </div>
+
+    <div class="card card-danger">
+      <h2 class="card-title"><span class="tag tag-danger">!</span>红旗征筛查<span class="card-sub">以下任何一项为「是」，将终止分析并建议转诊眼科</span></h2>
+      <div class="symptom-list" id="redflag-list">
+        <label class="check-row"><input type="checkbox" data-field="redFlags.suddenVisionLoss"><span>突发性视力下降（数小时/数天内进行性下降）</span></label>
+        <label class="check-row"><input type="checkbox" data-field="redFlags.monoDiplopia"><span>单眼复视（遮盖一眼后复视不消失）</span></label>
+        <label class="check-row"><input type="checkbox" data-field="redFlags.newDiplopia"><span>突发性或新发的复视</span></label>
+        <label class="check-row"><input type="checkbox" data-field="redFlags.eyeMoveLimit"><span>眼球运动明显受限</span></label>
+        <label class="check-row"><input type="checkbox" data-field="redFlags.pupilAbnormal"><span>瞳孔异常（不等大、对光反应异常）</span></label>
+        <label class="check-row"><input type="checkbox" data-field="redFlags.severePain"><span>剧烈眼痛伴畏光、恶心呕吐</span></label>
+        <label class="check-row"><input type="checkbox" data-field="redFlags.fieldDefect"><span>视野缺损主诉</span></label>
+        <label class="check-row"><input type="checkbox" data-field="redFlags.exophthalmos"><span>眼球突出</span></label>
+        <label class="check-row"><input type="checkbox" data-field="redFlags.recentTrauma"><span>近期眼外伤或眼内手术史</span></label>
+        <label class="check-row"><input type="checkbox" data-field="redFlags.cantCooperate"><span>年龄 &lt; 6 岁且无法配合检查</span></label>
+      </div>
+      <p class="note">「最佳矫正视力低于同龄正常水平」一项由系统根据已填视力自动判定。</p>
+    </div>
+
+    <div class="step-actions">
+      <button class="btn btn-primary" data-next="2" type="button">下一步：录入检查数据 →</button>
+    </div>
+  </section>
+
+  <!-- ============ 第二步：检查数据 ============ -->
+  <section id="step-2" class="step-panel">
+    <p class="tip">未检查的项目请留空，系统自动标注「未查」，不会纳入诊断。</p>
+
+    <div class="card">
+      <h2 class="card-title"><span class="tag">调</span>调节功能</h2>
+      <div class="grid">
+        <label class="field"><span>AMP 测量方法</span>
+          <select data-field="accom.ampMethod">
+            <option value="pushup">推进法（移近法）</option><option value="minus">负镜法</option>
+          </select>
+        </label>
+        <label class="field"><span>AMP（OD）D<small class="norm" data-norm="amp"></small></span>
+          <input type="number" data-field="accom.ampOD" step="0.25" min="0" placeholder="如 5.0">
+        </label>
+        <label class="field"><span>AMP（OS）D</span>
+          <input type="number" data-field="accom.ampOS" step="0.25" min="0" placeholder="如 5.5">
+        </label>
+        <label class="field"><span>AMP（双眼）D</span>
+          <input type="number" data-field="accom.ampOU" step="0.25" min="0" placeholder="如 5.0">
+        </label>
+        <label class="field"><span>NRA（+D）<small class="norm" data-norm="nra"></small></span>
+          <div class="signed-input"><i>+</i><input type="number" data-field="accom.nra" step="0.25" min="0" placeholder="如 2.25"></div>
+        </label>
+        <label class="field"><span>PRA（−D）<small class="norm" data-norm="pra"></small></span>
+          <div class="signed-input"><i>−</i><input type="number" data-field="accom.pra" step="0.25" min="0" placeholder="如 1.25"></div>
+        </label>
+        <label class="field"><span>BCC / MEM（D，带符号）<small class="norm" data-norm="bcc"></small></span>
+          <input type="number" data-field="accom.bcc" step="0.25" placeholder="如 +1.00 或 -0.25">
+        </label>
+        <label class="field"><span>调节灵敏度 OD（cpm）<small class="norm" data-norm="flipMono"></small></span>
+          <input type="number" data-field="accom.flipOD" step="0.5" min="0" placeholder="±2.00D 翻转拍">
+        </label>
+        <label class="field"><span>调节灵敏度 OS（cpm）</span>
+          <input type="number" data-field="accom.flipOS" step="0.5" min="0" placeholder="">
+        </label>
+        <label class="field"><span>调节灵敏度 双眼（cpm）<small class="norm" data-norm="flipBin"></small></span>
+          <input type="number" data-field="accom.flipOU" step="0.5" min="0" placeholder="">
+        </label>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="card-title"><span class="tag">聚</span>聚散功能</h2>
+      <div class="grid">
+        <label class="field"><span>远距隐斜<small class="norm" data-norm="distPhoria"></small></span>
+          <div class="phoria-input">
+            <input type="number" data-field="verg.distPhoriaVal" step="1" min="0" placeholder="数值 Δ">
+            <select data-field="verg.distPhoriaDir"><option value="exo">外隐斜</option><option value="eso">内隐斜</option></select>
+          </div>
+        </label>
+        <label class="field"><span>近距隐斜<small class="norm" data-norm="nearPhoria"></small></span>
+          <div class="phoria-input">
+            <input type="number" data-field="verg.nearPhoriaVal" step="1" min="0" placeholder="数值 Δ">
+            <select data-field="verg.nearPhoriaDir"><option value="exo">外隐斜</option><option value="eso">内隐斜</option></select>
+          </div>
+        </label>
+        <label class="field"><span>AC/A 比率（Δ/D）<small class="norm" data-norm="aca"></small></span>
+          <input type="number" data-field="verg.aca" step="0.5" min="0" placeholder="如 4.5">
+        </label>
+        <label class="field"><span>AC/A 测量方法</span>
+          <select data-field="verg.acaMethod"><option value="calc">计算法</option><option value="grad">梯度法</option></select>
+        </label>
+        <label class="field"><span>NPC 集合近点破裂点（cm）<small class="norm" data-norm="npc"></small></span>
+          <input type="number" data-field="verg.npc" step="0.5" min="0" placeholder="如 10">
+        </label>
+        <label class="field"><span>聚散灵敏度（cpm）<small class="norm" data-norm="vergFlex"></small></span>
+          <input type="number" data-field="verg.vergFlex" step="0.5" min="0" placeholder="3ΔBI/12ΔBO">
+        </label>
+      </div>
+      <div class="fusion-block">
+        <h3>融合范围（模糊 / 破裂 / 恢复，单位 Δ；BI 无模糊点可留空）</h3>
+        <div class="fusion-grid">
+          <div class="fusion-row-head">远距 BI</div>
+          <input type="number" data-field="verg.distBI.blur" step="1" min="0" placeholder="模糊">
+          <input type="number" data-field="verg.distBI.break" step="1" min="0" placeholder="破裂">
+          <input type="number" data-field="verg.distBI.rec" step="1" min="0" placeholder="恢复">
+          <div class="fusion-row-head">远距 BO</div>
+          <input type="number" data-field="verg.distBO.blur" step="1" min="0" placeholder="模糊">
+          <input type="number" data-field="verg.distBO.break" step="1" min="0" placeholder="破裂">
+          <input type="number" data-field="verg.distBO.rec" step="1" min="0" placeholder="恢复">
+          <div class="fusion-row-head">近距 BI</div>
+          <input type="number" data-field="verg.nearBI.blur" step="1" min="0" placeholder="模糊">
+          <input type="number" data-field="verg.nearBI.break" step="1" min="0" placeholder="破裂">
+          <input type="number" data-field="verg.nearBI.rec" step="1" min="0" placeholder="恢复">
+          <div class="fusion-row-head">近距 BO</div>
+          <input type="number" data-field="verg.nearBO.blur" step="1" min="0" placeholder="模糊">
+          <input type="number" data-field="verg.nearBO.break" step="1" min="0" placeholder="破裂">
+          <input type="number" data-field="verg.nearBO.rec" step="1" min="0" placeholder="恢复">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="card-title"><span class="tag">三</span>三级视功能</h2>
+      <div class="grid">
+        <label class="field"><span>Worth 4 灯<small class="norm" data-norm="worth"></small></span>
+          <select data-field="binoc.worth4">
+            <option value="">未查</option><option value="4">看到 4 灯（正常）</option>
+            <option value="2">2 灯</option><option value="3">3 灯</option><option value="5">5 灯（复视）</option>
+          </select>
+        </label>
+        <label class="field"><span>立体视（弧秒）<small class="norm" data-norm="stereo"></small></span>
+          <input type="number" data-field="binoc.stereo" step="10" min="0" placeholder="如 80">
+        </label>
+        <label class="field"><span>不等像（%）<small class="norm" data-norm="aniseikonia"></small></span>
+          <input type="number" data-field="binoc.aniseikonia" step="0.1" min="0" placeholder="如 0.5">
+        </label>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="card-title"><span class="tag">他</span>眼球运动 / 其他</h2>
+      <div class="grid">
+        <label class="field"><span>注视稳定性 / 扫视 / 追随</span>
+          <input type="text" data-field="other.eyeMove" placeholder="如：追随运动欠平滑；未查留空">
+        </label>
+        <label class="field"><span>瞳孔距离 PD（mm）</span>
+          <input type="number" data-field="other.pd" step="0.5" min="0" placeholder="如 62">
+        </label>
+      </div>
+    </div>
+
+    <div class="step-actions">
+      <button class="btn btn-ghost" data-next="1" type="button">← 返回问诊</button>
+      <button id="btn-analyze" class="btn btn-primary" type="button">生成分析报告 →</button>
+    </div>
+  </section>
+
+  <!-- ============ 第三步：报告 ============ -->
+  <section id="step-3" class="step-panel">
+    <div id="report-container" class="report-container">
+      <div class="empty-state">
+        <p>尚未生成报告。请完成第 1、2 步后点击「生成分析报告」。</p>
+      </div>
+    </div>
+    <div class="step-actions" id="report-actions" hidden>
+      <button class="btn btn-ghost" data-next="2" type="button">← 修改数据</button>
+      <button id="btn-print" class="btn btn-ghost" type="button">打印 / 存为 PDF</button>
+      <button id="btn-new" class="btn btn-primary" type="button">新建下一位顾客</button>
+    </div>
+  </section>
+
+  <!-- ============ 历史记录 ============ -->
+  <section id="history-view" class="step-panel">
+    <div class="card">
+      <h2 class="card-title">历史记录<span class="card-sub">仅保存在本机浏览器 localStorage，清除浏览器数据会丢失</span></h2>
+      <div id="history-list"></div>
+    </div>
+    <div class="step-actions">
+      <button class="btn btn-ghost" id="btn-back-main" type="button">← 返回</button>
+    </div>
+  </section>
+
+</main>
+
+<footer class="app-footer">
+  <p>本工具由规则引擎自动生成分析建议，仅供参考，不能替代执业医师的临床诊断。所有数据仅保存于本机浏览器，不上传任何服务器。</p>
+</footer>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script src="engine.js"></script>
+<script src="app.js"></script>
+<script src="wheel.js"></script>
+</body>
+</html>
