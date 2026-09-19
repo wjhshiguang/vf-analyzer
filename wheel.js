@@ -6,17 +6,17 @@
   var PAD = ITEM_H * 2; // 上下垫 2 行使首末项可居中
 
   /* ---------------- 字段配置 ---------------- */
-  var VA_VALUES = [0.05, 0.08, 0.1, 0.12, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.6, 0.8, 1, 1.2, 1.5, 2];
+  var VA_VALUES = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.2, 1.5, 2];
   var STEREO_VALUES = [20, 25, 30, 40, 50, 60, 70, 80, 100, 120, 140, 160, 180, 200, 300, 400, 500, 600, 700, 800, 1000];
 
   var EXACT = {
     'basic.age':           { min: 1, max: 100, step: 1, def: 12 },
     'basic.rxOD.axis':     { min: 0, max: 180, step: 1 },
     'basic.rxOS.axis':     { min: 0, max: 180, step: 1 },
-    'basic.vaNakedOD':     { values: VA_VALUES, def: 1 },
-    'basic.vaNakedOS':     { values: VA_VALUES, def: 1 },
-    'basic.vaCorrectedOD': { values: VA_VALUES, def: 1 },
-    'basic.vaCorrectedOS': { values: VA_VALUES, def: 1 },
+    'basic.vaNakedOD':     { values: VA_VALUES, def: 1, fixedDec: 1 },
+    'basic.vaNakedOS':     { values: VA_VALUES, def: 1, fixedDec: 1 },
+    'basic.vaCorrectedOD': { values: VA_VALUES, def: 1, fixedDec: 1 },
+    'basic.vaCorrectedOS': { values: VA_VALUES, def: 1, fixedDec: 1 },
     'habits.nearHours':    { min: 0, max: 24, step: 0.5, def: 6 },
     'accom.ampOD':         { min: 0, max: 20, step: 0.25 },
     'accom.ampOS':         { min: 0, max: 20, step: 0.25 },
@@ -50,10 +50,10 @@
     var s = String(step);
     return s.indexOf('.') >= 0 ? s.split('.')[1].length : 0;
   }
-  function fmt(v, step, sign) {
-    var dec = decimalsOf(step);
+  function fmt(v, step, sign, fixedDec) {
+    var dec = fixedDec != null ? fixedDec : decimalsOf(step);
     var s = v.toFixed(dec);
-    if (dec > 0) s = s.replace(/\.?0+$/, '');
+    if (fixedDec == null && dec > 0) s = s.replace(/\.?0+$/, '');
     if (sign && v > 0) s = '+' + s;
     return s;
   }
@@ -176,7 +176,7 @@
       addCol(fracs, fracIdx);
     } else {
       var values = cfg.values || buildRange(cfg.min, cfg.max, cfg.step);
-      var labels = values.map(function (v) { return fmt(v, cfg.step || 1, cfg.sign); });
+      var labels = values.map(function (v) { return fmt(v, cfg.step || 1, cfg.sign, cfg.fixedDec); });
       var idx = 0;
       if (!isNaN(num)) idx = nearestIndex(values, num);
       else if (cfg.def != null) idx = nearestIndex(values, cfg.def);
@@ -207,7 +207,7 @@
       return current.cols[0].items.children[current.cols[0].index].textContent +
              current.cols[1].items.children[current.cols[1].index].textContent;
     }
-    return fmt(current.values[current.cols[0].index], cfg.step || 1, cfg.sign);
+    return fmt(current.values[current.cols[0].index], cfg.step || 1, cfg.sign, cfg.fixedDec);
   }
 
   function commit(str) {
