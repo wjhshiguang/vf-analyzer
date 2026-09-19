@@ -1,5 +1,5 @@
 /* Service Worker — 预缓存全部静态资源，离线可用 */
-var CACHE_NAME = 'vf-analyzer-v3';
+var CACHE_NAME = 'vf-analyzer-v4';
 var ASSETS = [
   './',
   './index.html',
